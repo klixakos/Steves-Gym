@@ -1,0 +1,61 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && (
+        request.auth.token.email == 'asterast6@gmail.com' ||
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin')
+      );
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    match /users/{userId} {
+      allow read: if isAuthenticated() && (isOwner(userId) || isAdmin());
+      allow create: if isAuthenticated() && isOwner(userId);
+      allow update: if isAuthenticated() && (isOwner(userId) || isAdmin());
+      allow delete: if isAdmin();
+    }
+
+    match /appointments/{appointmentId} {
+      // Clients can only read their own appointments; Admin has full visibility of all appointments
+      allow read: if isAuthenticated() && (
+        isAdmin() || resource.data.clientId == request.auth.uid
+      );
+      allow create: if isAuthenticated() && (
+        isAdmin() || request.resource.data.clientId == request.auth.uid
+      );
+      allow update: if isAuthenticated() && (
+        isAdmin() || resource.data.clientId == request.auth.uid
+      );
+      allow delete: if isAuthenticated() && (
+        isAdmin() || resource.data.clientId == request.auth.uid
+      );
+    }
+
+    match /slotSummaries/{slotKey} {
+      // Any authenticated user can view slot capacity (booked count out of 4)
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated();
+    }
+
+    match /settings/{docId} {
+      // Any authenticated user can read schedule settings; only Admin can update
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

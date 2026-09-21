@@ -1,0 +1,7 @@
+{
+  "name": "Personal Trainer Booking",
+  "description": "A booking and session tracking app for personal trainers and clients with appointment scheduling and capacity limits.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+

@@ -1,0 +1,81 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile with role and remaining session balance.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "displayName": { "type": "string" },
+        "role": { "type": "string", "enum": ["admin", "client"] },
+        "remainingSessions": { "type": "number" },
+        "phone": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email", "displayName", "role", "remainingSessions"]
+    },
+    "Appointment": {
+      "title": "Appointment",
+      "description": "An appointment booked for personal training with max 4 clients per slot.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "clientId": { "type": "string" },
+        "clientName": { "type": "string" },
+        "clientEmail": { "type": "string" },
+        "date": { "type": "string" },
+        "timeSlot": { "type": "string" },
+        "slotKey": { "type": "string" },
+        "status": { "type": "string", "enum": ["confirmed", "cancelled"] },
+        "notes": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "clientId", "clientName", "clientEmail", "date", "timeSlot", "slotKey", "status"]
+    },
+    "SlotSummary": {
+      "title": "SlotSummary",
+      "description": "Aggregated booking counts for each time slot to ensure max 4 clients per hour without exposing other clients' details.",
+      "type": "object",
+      "properties": {
+        "slotKey": { "type": "string" },
+        "date": { "type": "string" },
+        "timeSlot": { "type": "string" },
+        "bookedCount": { "type": "number" },
+        "maxCapacity": { "type": "number" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["slotKey", "date", "timeSlot", "bookedCount", "maxCapacity"]
+    },
+    "AvailabilitySettings": {
+      "title": "AvailabilitySettings",
+      "description": "Trainer master schedule settings controlling operating days of the week, active daily hours, booking horizon, and date-specific closures.",
+      "type": "object",
+      "properties": {
+        "bookingHorizonDays": { "type": "number" },
+        "weeklySchedule": { "type": "object" },
+        "dateOverrides": { "type": "object" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["bookingHorizonDays", "weeklySchedule", "dateOverrides"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profiles storing personal trainer clients and admins."
+    },
+    "/appointments/{appointmentId}": {
+      "schema": "Appointment",
+      "description": "Scheduled training appointments."
+    },
+    "/slotSummaries/{slotKey}": {
+      "schema": "SlotSummary",
+      "description": "Hour-by-hour slot booking counts (max 4 capacity per slot)."
+    },
+    "/settings/{docId}": {
+      "schema": "AvailabilitySettings",
+      "description": "Global availability and schedule configuration managed by the trainer admin."
+    }
+  }
+}
